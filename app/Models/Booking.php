@@ -17,11 +17,11 @@ class Booking extends Model
         return $this->belongsTo(Trip::class);
     }
 
-    public function pickupStation() {
-        return $this->belongsTo(Station::class, 'pickup_station_id');
+    public function pickup() {
+        return $this->belongsTo(StationTrip::class, 'pickup_station_id');
     }
 
-    public function dropoffStation() {
-        return $this->belongsTo(Station::class, 'dropoff_station_id');
+    public function dropoff() {
+        return $this->belongsTo(StationTrip::class, 'dropoff_station_id');
     }
 }
