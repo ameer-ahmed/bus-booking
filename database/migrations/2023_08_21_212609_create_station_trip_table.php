@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('station_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('trip_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->integer('enters')->unsigned()->default(0);
+            $table->integer('sits')->unsigned()->default(0);
+            $table->integer('leaves')->unsigned()->default(0);
         });
     }
 
