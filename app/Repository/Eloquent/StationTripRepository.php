@@ -43,4 +43,8 @@ class StationTripRepository extends Repository implements StationTripRepositoryI
             ->increment('leaves', $seats);
     }
 
+    public function getId($trip_id, $station_id) {
+        return $this->model::query()->select('id')->where('trip_id', $trip_id)->where('station_id', $station_id)->pluck('id')->first();
+    }
+
 }

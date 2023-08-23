@@ -2,78 +2,59 @@
 
 namespace App\Http\Services\Api\V1\Booking;
 
-use App\Http\Requests\Api\V1\Auth\LoginRequest;
-use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Requests\Api\V1\Booking\BookingRequest;
+use App\Http\Requests\Api\V1\Search\SearchRequest;
 use App\Http\Resources\V1\Booking\BookingResource;
-use App\Http\Resources\V1\User\UserResource;
+use App\Http\Resources\V1\Trip\TripResource;
 use App\Http\Traits\Responser;
-use App\Repository\BookingRepositoryInterface;
-use App\Repository\StationTripRepositoryInterface;
-use App\Repository\TripRepositoryInterface;
-use App\Repository\UserRepositoryInterface;
 use Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BookingService
 {
     use Responser;
 
-    protected UserRepositoryInterface $userRepository;
-    protected BookingRepositoryInterface $bookingRepository;
-    protected StationTripRepositoryInterface $stationTripRepository;
-    protected TripRepositoryInterface $tripRepository;
+    protected BookingHelperService $bookingHelper;
 
     public function __construct(
-        UserRepositoryInterface $userRepository,
-        BookingRepositoryInterface $bookingRepository,
-        StationTripRepositoryInterface $stationTripRepository,
-        TripRepositoryInterface $tripRepository,
+        BookingHelperService $bookingHelper,
     )
     {
-        $this->userRepository = $userRepository;
-        $this->bookingRepository = $bookingRepository;
-        $this->stationTripRepository = $stationTripRepository;
-        $this->tripRepository = $tripRepository;
+        $this->bookingHelper = $bookingHelper;
     }
 
-    private function busSeats($trip_id) {
-        $trip = $this->tripRepository->getById($trip_id, ['id', 'bus_id'], ['bus']);
-        return $trip->bus?->seats;
-    }
-
-    public function reserve(BookingRequest $request) {
+    public function search(SearchRequest $request) {
         $data = $request->validated();
-        $max_taken_seats = $this->stationTripRepository->getMaxTakenSeats($data['trip_id'], $data['pickup_station_id'], $data['dropoff_station_id']);
 
-        // Check if the max taken seats plus the requested seats can cover the maximum bus seats
-        if ($max_taken_seats + $data['seats'] <= $this->busSeats($data['trip_id'])) {
+        $results = $this->bookingHelper->search($data);
+
+        if ($results->count() > 0) {
+            return $this->responseSuccess(message: $results->count() . ' result(s) found.', data: TripResource::collection($results));
+        } else {
+            return $this->responseFail(message: 'No result matches your request found.');
+        }
+    }
+
+    public function reserve(BookingRequest $request)
+    {
+        $data = $request->validated();
+
+        if ($this->bookingHelper->isReservable($data['trip_id'], $data['pickup_station_trip_id'], $data['dropoff_station_trip_id'], $data['seats'])) {
             DB::beginTransaction();
-            try {
-                $booking = $this->bookingRepository->create([
-                    'user_id' => auth('api')->id(),
-                    'seats' => $data['seats'],
-                    'trip_id' => $data['trip_id'],
-                    'pickup_station_id' => $data['pickup_station_id'],
-                    'dropoff_station_id' => $data['dropoff_station_id'],
-                ]);
 
-                // Prepare the trip data to be ready for the next booking depending on remain seats
-                $this->stationTripRepository->updateTripData($data['trip_id'], $data['pickup_station_id'], $data['dropoff_station_id'], $data['seats']);
+            try {
+                $booking = $this->bookingHelper->reserve($data);
 
                 DB::commit();
 
                 return $this->responseSuccess(message: 'Your trip is booked successfully.', data: new BookingResource($booking));
             } catch (Exception $e) {
                 DB::rollBack();
-                return $e;
-                return $this->responseFail(message: 'Something went wrong while booking this reservation');
+
+                return $this->responseFail(message: 'Something went wrong while booking this reservation.');
             }
         } else {
-            return $this->responseFail(message: 'The seats are not enough');
+            return $this->responseFail(message: 'The seats are not enough.');
         }
     }
-
-
 }
