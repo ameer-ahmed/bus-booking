@@ -13,21 +13,35 @@ class TripSeeder extends Seeder
      */
     public function run(): void
     {
-        $cairo_fayyum_trip = Trip::query()->create([
+        $cairo_asyut_trip = Trip::query()->create([
             'bus_id' => 1,
             'first_station_id' => 1,
             'last_station_id' => 5,
         ]);
 
-        $stations = [ // Dummy IDs
+        $cairo_asyut_stations = [ // Dummy IDs
             1, // Cairo
             3, // AlFyyum
             4, // AlMinya
             5, // Asyut
         ];
 
-        $cairo_fayyum_trip->stations()->attach($stations);
+        $cairo_asyut_trip->stations()->attach($cairo_asyut_stations);
 
+        #==============================================================================================================#
 
+        $giza_alminya_trip = Trip::query()->create([
+            'bus_id' => 2,
+            'first_station_id' => 2,
+            'last_station_id' => 4,
+        ]);
+
+        $giza_alminya_stations = [ // Dummy IDs
+            2, // Giza
+            3, // AlFyyum
+            4, // AlMinya
+        ];
+
+        $giza_alminya_trip->stations()->attach($giza_alminya_stations);
     }
 }

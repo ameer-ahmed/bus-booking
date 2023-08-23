@@ -29,4 +29,8 @@ class Trip extends Model
     public function stations() {
         return $this->belongsToMany(Station::class);
     }
+
+    public function itineraries() {
+        return $this->hasMany(StationTrip::class);
+    }
 }

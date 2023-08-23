@@ -45,7 +45,7 @@ class AuthService
     public function logout(){
         try {
             Auth::guard('api')->logout();
-            return $this->responseSuccess(message: 'Successfully logged out');
+            return $this->responseSuccess(message: 'Successfully logged out.');
         } catch (Exception $e) {
             return $this->responseFail(message: 'Something went wrong while logging out.');
         }
@@ -54,7 +54,7 @@ class AuthService
     public function refresh(){
         try {
             Auth::guard('api')->refresh();
-            return $this->responseSuccess(message: 'Token refreshed successfully', data: new UserResource(auth('api')->user()));
+            return $this->responseSuccess(message: 'Token refreshed successfully.', data: new UserResource(auth('api')->user()));
         } catch (Exception $e) {
             return $this->responseFail(message: 'Something went wrong while refreshing token.');
         }

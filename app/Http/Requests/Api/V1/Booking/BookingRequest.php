@@ -25,8 +25,8 @@ class BookingRequest extends FormRequest
         return [
             'trip_id' => ['required', Rule::exists('trips', 'id')],
             'seats' => ['required', 'integer', 'gte:1'],
-            'pickup_station_id' => ['required', 'integer', Rule::exists('station_trip', 'id')],
-            'dropoff_station_id' => ['required', 'integer', Rule::exists('station_trip', 'id'), 'gt:pickup_station_id'],
+            'pickup_station_trip_id' => ['required', 'integer', Rule::exists('station_trip', 'id')->where('trip_id', $this->input('trip_id'))],
+            'dropoff_station_trip_id' => ['required', 'integer', Rule::exists('station_trip', 'id')->where('trip_id', $this->input('trip_id')), 'gt:pickup_station_trip_id'],
         ];
     }
 }
